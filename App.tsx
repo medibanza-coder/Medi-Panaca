@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AppState, ProcessedData } from './types';
 import { extractDataFromImages } from './services/geminiService';
 import { ProcessingOverlay } from './components/ProcessingOverlay';
@@ -11,6 +11,10 @@ const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>('IDLE');
   const [data, setData] = useState<ProcessedData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
+  
+  // Track if we are currently loading from storage to avoid immediate overwrite
+  const isInitializing = useRef(true);
 
   // Load state from localStorage on mount
   useEffect(() => {
@@ -21,21 +25,31 @@ const App: React.FC = () => {
         if (savedData && savedAppState) {
           setData(savedData);
           setAppState(savedAppState);
+          setLastSaved(new Date().toLocaleTimeString());
         }
       } catch (e) {
         console.error("Failed to load saved session", e);
         localStorage.removeItem(STORAGE_KEY);
       }
     }
+    isInitializing.current = false;
   }, []);
 
   // Save state to localStorage whenever data or appState changes
   useEffect(() => {
+    if (isInitializing.current) return;
+
     if (appState === 'REVIEW' && data) {
-      const session = JSON.stringify({ savedData: data, savedAppState: appState });
-      localStorage.setItem(STORAGE_KEY, session);
+      try {
+        const session = JSON.stringify({ savedData: data, savedAppState: appState });
+        localStorage.setItem(STORAGE_KEY, session);
+        setLastSaved(new Date().toLocaleTimeString());
+      } catch (e) {
+        console.error("Failed to save session", e);
+      }
     } else if (appState === 'IDLE') {
       localStorage.removeItem(STORAGE_KEY);
+      setLastSaved(null);
     }
   }, [data, appState]);
 
@@ -79,6 +93,7 @@ const App: React.FC = () => {
       setData(null);
       setAppState('IDLE');
       localStorage.removeItem(STORAGE_KEY);
+      setLastSaved(null);
     }
   };
 
@@ -212,7 +227,7 @@ const App: React.FC = () => {
                 </svg>
                 Session auto-saved to your browser
               </span>
-              <span>Last active: {new Date().toLocaleTimeString()}</span>
+              {lastSaved && <span>Last saved: {lastSaved}</span>}
             </div>
             <ReviewTable data={data} onUpdate={setData} />
           </div>
