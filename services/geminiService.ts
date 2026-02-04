@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { ProcessedData, FileData, Individual } from "../types";
 
@@ -36,8 +35,9 @@ REGRAS DE EXTRAÇÃO RELACIONAL (CRÍTICO):
 Retorne JSON estrito com o campo 'individuals'.`;
 
   try {
+    // Upgraded to gemini-3-pro-preview for complex relationship reasoning and transcription accuracy
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-3-pro-preview',
       contents: { 
         parts: [
           { text: prompt },
