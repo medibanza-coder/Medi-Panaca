@@ -7,6 +7,12 @@
     <title>Oral-Gen | MZ11 Assistant</title>
     <!-- Favicon para evitar 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📜</text></svg>">
+    
+    <!-- Script de segurança para evitar erro de 'process' no navegador -->
+    <script>
+      window.process = window.process || { env: { NODE_ENV: 'production' } };
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -31,6 +37,7 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
         body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        #root { min-height: 100vh; display: flex; flex-direction: column; }
     </style>
 <script type="importmap">
 {
@@ -39,12 +46,15 @@
     "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.45.4",
     "react/": "https://esm.sh/react@^19.2.4/",
     "react": "https://esm.sh/react@^19.2.4",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react-dom/client": "https://esm.sh/react-dom@^19.2.4/client"
   }
 }
 </script>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen selection:bg-blue-100">
     <div id="root"></div>
+    <!-- Carregamento do ponto de entrada da aplicação -->
+    <script type="module" src="./index.tsx"></script>
 </body>
 </html>
