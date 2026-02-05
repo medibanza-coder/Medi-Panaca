@@ -1,22 +1,21 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { extractDataFromImages } from './services/geminiService.ts';
-import { ProcessingOverlay } from './components/ProcessingOverlay.tsx';
-import { ReviewTable } from './components/ReviewTable.tsx';
-import { InterviewList } from './components/InterviewList.tsx';
-import { Auth } from './components/Auth.tsx';
-import { supabase, saveSessionToSupabase, fetchSessionsFromSupabase, deleteSessionFromSupabase } from './services/supabaseService.ts';
-import { AuthUser, SavedSession, ProcessedData, FileData } from './types.ts';
+import { extractDataFromImages } from './services/geminiService.js';
+import { ProcessingOverlay } from './components/ProcessingOverlay.js';
+import { ReviewTable } from './components/ReviewTable.js';
+import { InterviewList } from './components/InterviewList.js';
+import { Auth } from './components/Auth.js';
+import { supabase, saveSessionToSupabase, fetchSessionsFromSupabase, deleteSessionFromSupabase } from './services/supabaseService.js';
 
 const ACTIVE_SESSION_KEY = 'oral_gen_prod_v1';
 
 const App = () => {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [appState, setAppState] = useState<string>('IDLE');
-  const [data, setData] = useState<ProcessedData | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [savedInterviews, setSavedInterviews] = useState<SavedSession[]>([]);
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [user, setUser] = useState(null);
+  const [appState, setAppState] = useState('IDLE');
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+  const [savedInterviews, setSavedInterviews] = useState([]);
+  const [currentSessionId, setCurrentSessionId] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState({ current: 0, total: 0 });
   
@@ -107,7 +106,7 @@ const App = () => {
     setError(null);
     try {
       const sessionId = currentSessionId || crypto.randomUUID();
-      const sessionToSave: SavedSession = {
+      const sessionToSave = {
         id: sessionId,
         timestamp: new Date().toISOString(),
         data: data,
@@ -117,7 +116,7 @@ const App = () => {
       setCurrentSessionId(sessionId);
       const remoteSessions = await fetchSessionsFromSupabase();
       setSavedInterviews(remoteSessions);
-    } catch (err: any) {
+    } catch (err) {
       setError("Falha na sincronização: " + err.message);
       setTimeout(() => setError(null), 5000);
     } finally {
@@ -125,7 +124,7 @@ const App = () => {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     
@@ -135,7 +134,7 @@ const App = () => {
     setError(null);
 
     try {
-      const filePromises = Array.from(files).map((file: File): Promise<FileData> => {
+      const filePromises = Array.from(files).map((file) => {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = (event) => {
@@ -146,10 +145,10 @@ const App = () => {
           reader.readAsDataURL(file);
         });
       });
-      const processedFiles: FileData[] = await Promise.all(filePromises);
+      const processedFiles = await Promise.all(filePromises);
       const result = await extractDataFromImages(processedFiles);
       
-      const finalData: ProcessedData = {
+      const finalData = {
         ...result,
         metadata: { ...result.metadata, originalFilename: fileName },
         sourceFiles: processedFiles
@@ -158,7 +157,7 @@ const App = () => {
       setData(finalData);
       setCurrentSessionId(null);
       setAppState('REVIEW');
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message || "Erro durante o processamento de IA.");
       setAppState('IDLE');
     }
@@ -251,7 +250,7 @@ const App = () => {
         )}
         
         {appState === 'REVIEW' && data && (
-          <ReviewTable data={data} onUpdate={setData} onSave={handleSaveSession} isSaving={isSyncing} />
+          <ReviewTable data={data} onUpdate={setData} onSave={handleSaveSession} isSaving={setIsSyncing} />
         )}
 
         {error && (

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -7,23 +6,16 @@
     <title>Oral-Gen | MZ11 Assistant</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📜</text></svg>">
     
-    <!-- Babel para converter TSX em JS no navegador -->
+    <!-- Babel for in-browser JSX/TSX transformation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
     <script>
-      // Polyfill para ambiente de produção
+      // Global environment polyfills for browser runtime
       window.process = { 
         env: { NODE_ENV: 'production', API_KEY: '' },
         nextTick: (cb) => setTimeout(cb, 0)
       };
       window.global = window;
-
-      // Silenciar avisos do Tailwind
-      const warn = console.warn;
-      console.warn = function(...args) {
-        if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
-        warn.apply(console, args);
-      };
     </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -41,7 +33,7 @@
     <style>
         .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        body { -webkit-font-smoothing: antialiased; }
+        body { -webkit-font-smoothing: antialiased; margin: 0; padding: 0; }
         #root { min-height: 100vh; display: flex; flex-direction: column; }
     </style>
 
@@ -53,15 +45,14 @@
     "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
     "@google/genai": "https://esm.sh/@google/genai@1.38.0",
     "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.45.4",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "react/": "https://esm.sh/react@^19.2.4/"
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
   }
 }
 </script>
 </head>
 <body class="bg-slate-50 text-slate-900">
     <div id="root"></div>
-    <!-- O Babel processará este arquivo transformando-o em JS compatível -->
-    <script type="text/babel" data-type="module" data-presets="react,typescript" src="./index.tsx"></script>
+    <!-- Babel transforms this module in the browser. index.js must exist in the same directory. -->
+    <script type="text/babel" data-type="module" data-presets="react,typescript" src="index.js"></script>
 </body>
 </html>
