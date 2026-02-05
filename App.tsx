@@ -1,18 +1,19 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { AppState, ProcessedData, FileData, Individual, SavedSession, AuthUser } from './types.ts';
-import { extractDataFromImages } from './services/geminiService.ts';
-import { ProcessingOverlay } from './components/ProcessingOverlay.tsx';
-import { ReviewTable } from './components/ReviewTable.tsx';
-import { InterviewList } from './components/InterviewList.tsx';
-import { Auth } from './components/Auth.tsx';
-import { supabase, saveSessionToSupabase, fetchSessionsFromSupabase, deleteSessionFromSupabase } from './services/supabaseService.ts';
+import { extractDataFromImages } from './services/geminiService';
+import { ProcessingOverlay } from './components/ProcessingOverlay';
+import { ReviewTable } from './components/ReviewTable';
+import { InterviewList } from './components/InterviewList';
+import { Auth } from './components/Auth';
+import { supabase, saveSessionToSupabase, fetchSessionsFromSupabase, deleteSessionFromSupabase } from './services/supabaseService';
+// Import types for state and handlers
+import { AuthUser, SavedSession, ProcessedData, FileData } from './types';
 
 const ACTIVE_SESSION_KEY = 'oral_gen_prod_v1';
 
-const App: React.FC = () => {
+const App = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [appState, setAppState] = useState<AppState>('IDLE');
+  const [appState, setAppState] = useState<string>('IDLE');
   const [data, setData] = useState<ProcessedData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [savedInterviews, setSavedInterviews] = useState<SavedSession[]>([]);
@@ -50,7 +51,7 @@ const App: React.FC = () => {
       try {
         const remoteSessions = await fetchSessionsFromSupabase();
         setSavedInterviews(remoteSessions);
-      } catch (err: any) {
+      } catch (err) {
         console.error("Erro Supabase:", err);
       } finally {
         setIsSyncing(false);
@@ -125,6 +126,7 @@ const App: React.FC = () => {
     }
   };
 
+  // Add React.ChangeEvent type to resolve implicit 'any' / 'unknown' errors
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -135,21 +137,25 @@ const App: React.FC = () => {
     setError(null);
 
     try {
-      const filePromises = Array.from(files).map((file: File) => {
-        return new Promise<FileData>((resolve, reject) => {
+      // Add explicit types to handle property access errors on 'unknown'
+      const filePromises = Array.from(files).map((file: File): Promise<FileData> => {
+        return new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = (event) => {
             const result = event.target?.result;
+            // Accessing file.type is safe because file is now typed as File
             if (typeof result === 'string') resolve({ data: result.split(',')[1], mimeType: file.type });
             else reject(new Error("Erro ao carregar arquivo"));
           };
+          // reader.readAsDataURL expects a Blob/File, resolving 'unknown' assignment error
           reader.readAsDataURL(file);
         });
       });
-      const processedFiles = await Promise.all(filePromises);
+      // Typing processedFiles as FileData[] resolves the argument mismatch error for extractDataFromImages
+      const processedFiles: FileData[] = await Promise.all(filePromises);
       const result = await extractDataFromImages(processedFiles);
       
-      const finalData = {
+      const finalData: ProcessedData = {
         ...result,
         metadata: { ...result.metadata, originalFilename: fileName },
         sourceFiles: processedFiles
@@ -194,7 +200,7 @@ const App: React.FC = () => {
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Operador Autenticado</p>
-              <p className="text-[11px] font-bold text-slate-700 mt-1">{user.email?.split('@')[0]}</p>
+              <p className="text-[11px] font-bold text-slate-700 mt-1">{user?.email?.split('@')[0]}</p>
             </div>
             <button onClick={handleLogout} className="p-3 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all shadow-sm">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
@@ -251,7 +257,7 @@ const App: React.FC = () => {
         )}
         
         {appState === 'REVIEW' && data && (
-          <ReviewTable data={data} onUpdate={setData} onSave={handleSaveSession} isSaving={isSyncing} />
+          <ReviewTable data={data} onUpdate={setData} onSave={handleSaveSession} isSaving={setIsSyncing} />
         )}
 
         {error && (
