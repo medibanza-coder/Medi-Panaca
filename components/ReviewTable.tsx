@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
-import { Individual, ProcessedData } from '../types';
-import { generateGEDCOM } from '../services/gedcomService';
+import { Individual, ProcessedData } from '../types.ts';
+import { generateGEDCOM } from '../services/gedcomService.ts';
 
 interface ReviewTableProps {
   data: ProcessedData;
@@ -21,12 +21,11 @@ export const ReviewTable: React.FC<ReviewTableProps> = ({ data, onUpdate, onSave
   if (individuals.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[500px] bg-white rounded-[3rem] shadow-xl border border-slate-100 p-12 text-center animate-in fade-in zoom-in-95">
-        <div className="w-24 h-24 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-8 shadow-inner">
+        <div className="w-24 h-24 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-8">
           <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         </div>
         <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter mb-3">Dados não encontrados</h3>
-        <p className="text-slate-500 font-medium max-w-sm mb-8">Não foi possível carregar os registros extraídos.</p>
-        <button onClick={() => window.location.reload()} className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl">Recarregar Sistema</button>
+        <button onClick={() => window.location.reload()} className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all">Recarregar</button>
       </div>
     );
   }
@@ -64,14 +63,12 @@ export const ReviewTable: React.FC<ReviewTableProps> = ({ data, onUpdate, onSave
     recognition.onend = () => setIsListening(null);
   };
 
-  // Garante que a ordenação de páginas trate os valores como números explicitamente
-  // Fix: Explicitly type parameters a and b as numbers to satisfy TypeScript's arithmetic requirement on line 68.
   const uniquePages = Array.from(new Set(individuals.map(ind => Number(ind.page) || 1))).sort((a: number, b: number) => a - b);
   
   return (
-    <div className="flex h-[calc(100vh-140px)] gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 overflow-hidden">
-      <aside className="w-[45%] bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden ring-1 ring-slate-100">
-        <header className="px-8 py-5 border-b flex justify-between items-center bg-slate-50/80 backdrop-blur-sm">
+    <div className="flex h-[calc(100vh-140px)] gap-6 animate-in fade-in duration-700 overflow-hidden">
+      <aside className="w-[45%] bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden">
+        <header className="px-8 py-5 border-b flex justify-between items-center bg-slate-50/80">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
@@ -108,10 +105,7 @@ export const ReviewTable: React.FC<ReviewTableProps> = ({ data, onUpdate, onSave
               </div>
             )
           ) : (
-            <div className="flex flex-col items-center opacity-30 text-slate-400">
-              <svg className="w-20 h-20 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-              <p className="text-[10px] font-black uppercase tracking-widest">Aguardando Visualização</p>
-            </div>
+            <p className="text-[10px] font-black uppercase text-slate-400">Aguardando Visualização</p>
           )}
         </div>
       </aside>
@@ -122,20 +116,17 @@ export const ReviewTable: React.FC<ReviewTableProps> = ({ data, onUpdate, onSave
             <h2 className="text-base font-black text-slate-900 tracking-tighter uppercase leading-none">
               {data.metadata?.originalFilename || 'Sessão de Revisão'}
             </h2>
-            <div className="flex items-center gap-2 mt-2.5">
-              <span className="bg-blue-600 w-2 h-2 rounded-full animate-pulse"></span>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Confira os 25 registros por página</p>
-            </div>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Confira os 25 registros por página</p>
           </div>
           <div className="flex gap-3">
             <button 
               onClick={handleSave} 
               disabled={isSaving} 
-              className={`px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-3 shadow-lg ${
+              className={`px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${
                 saveSuccess ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-white hover:bg-slate-800'
-              } disabled:opacity-50`}
+              } disabled:opacity-50 shadow-lg`}
             >
-              {isSaving ? 'Gravando...' : saveSuccess ? 'Alterações Salvas' : 'Finalizar Revisão'}
+              {isSaving ? 'Gravando...' : saveSuccess ? 'Salvo!' : 'Finalizar Revisão'}
             </button>
             <button 
               onClick={() => {
@@ -180,46 +171,25 @@ export const ReviewTable: React.FC<ReviewTableProps> = ({ data, onUpdate, onSave
                         <tr key={ind.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="px-6 py-4 text-center text-[11px] font-black text-slate-300 border-r">{ind.rin}</td>
                           <td className="px-4 py-4">
-                            <input 
-                              type="text" 
-                              value={ind.relation || ''} 
-                              onChange={e => updateIndividual(ind.id, 'relation', e.target.value.toUpperCase())}
-                              className="w-full text-center text-[10px] font-black text-blue-600 border border-transparent focus:border-blue-100 rounded-lg p-2 bg-slate-50/50"
-                            />
+                            <input type="text" value={ind.relation || ''} onChange={e => updateIndividual(ind.id, 'relation', e.target.value.toUpperCase())} className="w-full text-center text-[10px] font-black text-blue-600 border border-transparent rounded-lg p-2 bg-slate-50/50 outline-none" />
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
-                              <input 
-                                type="text" 
-                                value={ind.fullName || ''} 
-                                onChange={e => updateIndividual(ind.id, 'fullName', e.target.value)}
-                                className="w-full text-xs font-black text-slate-800 border-none bg-transparent focus:ring-0 p-0"
-                              />
+                              <input type="text" value={ind.fullName || ''} onChange={e => updateIndividual(ind.id, 'fullName', e.target.value)} className="w-full text-xs font-black text-slate-800 border-none bg-transparent focus:ring-0 p-0" />
                               <button onClick={() => startVoiceInput(ind.id, 'fullName')} className={`p-2 rounded-xl text-slate-200 hover:text-blue-600 ${isListening === `${ind.id}-fullName` ? 'animate-pulse text-blue-600' : ''}`}>
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
                               </button>
                             </div>
                           </td>
                           <td className="px-4 py-4">
-                            <input 
-                              type="text" 
-                              value={ind.sex || ''} 
-                              onChange={e => updateIndividual(ind.id, 'sex', e.target.value.toUpperCase())}
-                              className="w-full text-center text-[10px] font-black text-slate-400 border border-transparent focus:border-blue-100 rounded-lg p-1 bg-transparent"
-                              maxLength={1}
-                            />
+                            <input type="text" value={ind.sex || ''} onChange={e => updateIndividual(ind.id, 'sex', e.target.value.toUpperCase())} className="w-full text-center text-[10px] font-black text-slate-400 border-none bg-transparent" maxLength={1} />
                           </td>
                           <td className="px-8 py-4 border-l">
                             <div className="grid grid-cols-1 gap-2">
                               <div className="flex items-center gap-3">
                                 <span className="text-[8px] font-black text-slate-300 w-6">NASC</span>
-                                <input type="text" value={ind.birthDate} onChange={e => updateIndividual(ind.id, 'birthDate', e.target.value)} className="font-bold text-slate-700 p-0 border-none bg-transparent focus:ring-0 text-[11px] w-24" placeholder="Data" />
-                                <input type="text" value={ind.birthPlace} onChange={e => updateIndividual(ind.id, 'birthPlace', e.target.value)} className={`p-0 border-none bg-transparent focus:ring-0 text-[11px] flex-1 ${ind.isDitto ? 'text-blue-500 italic' : 'text-slate-400'}`} placeholder="Local" />
-                              </div>
-                              <div className="flex items-center gap-3 opacity-40">
-                                <span className="text-[8px] font-black text-slate-300 w-6">OBIT</span>
-                                <input type="text" value={ind.deathDate} onChange={e => updateIndividual(ind.id, 'deathDate', e.target.value)} className="font-bold text-slate-700 p-0 border-none bg-transparent focus:ring-0 text-[11px] w-24" placeholder="Data" />
-                                <input type="text" value={ind.deathPlace} onChange={e => updateIndividual(ind.id, 'deathPlace', e.target.value)} className="text-slate-400 p-0 border-none bg-transparent focus:ring-0 text-[11px] flex-1" placeholder="Local" />
+                                <input type="text" value={ind.birthDate} onChange={e => updateIndividual(ind.id, 'birthDate', e.target.value)} className="font-bold text-slate-700 p-0 border-none bg-transparent text-[11px] w-24" />
+                                <input type="text" value={ind.birthPlace} onChange={e => updateIndividual(ind.id, 'birthPlace', e.target.value)} className={`p-0 border-none bg-transparent text-[11px] flex-1 ${ind.isDitto ? 'text-blue-500 italic' : 'text-slate-400'}`} />
                               </div>
                             </div>
                           </td>
