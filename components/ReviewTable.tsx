@@ -64,7 +64,9 @@ export const ReviewTable: React.FC<ReviewTableProps> = ({ data, onUpdate, onSave
     recognition.onend = () => setIsListening(null);
   };
 
-  const uniquePages = Array.from(new Set(individuals.map(ind => ind.page || 1))).sort((a: number, b: number) => a - b);
+  // Garante que a ordenação de páginas trate os valores como números explicitamente
+  // Fix: Explicitly type parameters a and b as numbers to satisfy TypeScript's arithmetic requirement on line 68.
+  const uniquePages = Array.from(new Set(individuals.map(ind => Number(ind.page) || 1))).sort((a: number, b: number) => a - b);
   
   return (
     <div className="flex h-[calc(100vh-140px)] gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 overflow-hidden">
@@ -94,6 +96,7 @@ export const ReviewTable: React.FC<ReviewTableProps> = ({ data, onUpdate, onSave
               <iframe 
                 src={`data:application/pdf;base64,${sourceFiles[activeFileIndex].data}#toolbar=0&navpanes=0`} 
                 className="w-full h-full rounded-2xl border-none shadow-inner"
+                title="Visualizador de PDF"
               />
             ) : (
               <div className="w-full h-full overflow-auto custom-scrollbar flex items-center justify-center p-4">
@@ -171,8 +174,8 @@ export const ReviewTable: React.FC<ReviewTableProps> = ({ data, onUpdate, onSave
                   </thead>
                   <tbody className="divide-y divide-slate-50">
                     {individuals
-                      .filter(ind => (ind.page || 1) === pageNum)
-                      .sort((a, b) => a.rin - b.rin)
+                      .filter(ind => Number(ind.page || 1) === pageNum)
+                      .sort((a, b) => (Number(a.rin) || 0) - (Number(b.rin) || 0))
                       .map((ind) => (
                         <tr key={ind.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="px-6 py-4 text-center text-[11px] font-black text-slate-300 border-r">{ind.rin}</td>

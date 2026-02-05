@@ -5,12 +5,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Oral-Gen | MZ11 Assistant</title>
-    <!-- Favicon para evitar 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📜</text></svg>">
     
-    <!-- Script de segurança para evitar erro de 'process' no navegador -->
+    <!-- Polyfill de segurança para ambiente de produção (Hostinger/Browser) -->
     <script>
-      window.process = window.process || { env: { NODE_ENV: 'production' } };
+      // 1. Emular objeto process antes de qualquer módulo
+      window.process = { 
+        env: { 
+          NODE_ENV: 'production',
+          API_KEY: '' // Será preenchido pelo ambiente se disponível
+        } 
+      };
+
+      // 2. Suprimir aviso de produção do Tailwind CDN
+      const originalWarn = console.warn;
+      console.warn = (...args) => {
+        if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
+        originalWarn.apply(console, args);
+      };
+
+      // 3. Capturador de erros para diagnosticar "Tela Branca"
+      window.onerror = function(msg, url, lineNo, columnNo, error) {
+        const root = document.getElementById('root');
+        if (root && root.innerHTML === "") {
+          root.innerHTML = `
+            <div style="padding: 40px; font-family: sans-serif; text-align: center; color: #64748b;">
+              <h1 style="color: #0f172a; font-weight: 900; text-transform: uppercase; letter-spacing: -0.05em;">Erro de Inicialização</h1>
+              <p style="margin-bottom: 20px;">A aplicação não pôde ser iniciada no servidor Hostinger.</p>
+              <div style="background: #f1f5f9; padding: 20px; border-radius: 12px; text-align: left; font-size: 12px; overflow: auto; max-width: 600px; margin: 0 auto;">
+                <strong>Erro:</strong> ${msg}<br>
+                <strong>Local:</strong> ${url}:${lineNo}
+              </div>
+              <button onclick="window.location.reload()" style="margin-top: 20px; padding: 12px 24px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">Tentar Novamente</button>
+            </div>
+          `;
+        }
+        return false;
+      };
     </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -44,17 +75,18 @@
   "imports": {
     "@google/genai": "https://esm.sh/@google/genai@^1.38.0",
     "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.45.4",
-    "react/": "https://esm.sh/react@^19.2.4/",
-    "react": "https://esm.sh/react@^19.2.4",
+    "react": "https://esm.sh/react@19.0.0",
+    "react-dom": "https://esm.sh/react-dom@19.0.0",
+    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
     "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "react-dom/client": "https://esm.sh/react-dom@^19.2.4/client"
+    "react/": "https://esm.sh/react@^19.2.4/"
   }
 }
 </script>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen selection:bg-blue-100">
     <div id="root"></div>
-    <!-- Carregamento do ponto de entrada da aplicação -->
+    <!-- Script module carregando o arquivo TSX principal -->
     <script type="module" src="./index.tsx"></script>
 </body>
 </html>
