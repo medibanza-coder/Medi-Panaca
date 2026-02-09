@@ -1,6 +1,5 @@
-
 import { createClient } from '@supabase/supabase-js';
-import { SavedSession } from '../types';
+import { SavedSession } from '../types.ts';
 
 const SUPABASE_URL = 'https://jnqnkjwjwafdsvclxxzo.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_AIfImrkSGLM3pFzdOuGINg_uzdny4_m';

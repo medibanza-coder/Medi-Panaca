@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { SavedSession } from '../types';
+import { SavedSession } from '../types.ts';
 
 interface InterviewListProps {
   sessions: SavedSession[];
@@ -25,7 +24,6 @@ export const InterviewList: React.FC<InterviewListProps> = ({ sessions, onSelect
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 py-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-      {/* Cabeçalho de Contexto */}
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
         <div>
           <h2 className="text-3xl font-black text-slate-900 tracking-tight">Lista de Entrevistas</h2>
@@ -40,7 +38,6 @@ export const InterviewList: React.FC<InterviewListProps> = ({ sessions, onSelect
         </button>
       </div>
 
-      {/* Barra de Busca e Filtros */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center">
         <div className="relative flex-1 w-full">
           <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -64,7 +61,6 @@ export const InterviewList: React.FC<InterviewListProps> = ({ sessions, onSelect
         </div>
       </div>
 
-      {/* Tabela de Dados Estilo FamilySearch */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <table className="min-w-full divide-y divide-slate-100 text-left">
           <thead className="bg-slate-50">
@@ -91,9 +87,6 @@ export const InterviewList: React.FC<InterviewListProps> = ({ sessions, onSelect
             ) : (
               filteredSessions.map((session) => {
                 const status = getStatus(session);
-                const interviewId = session.data.metadata.interviewId;
-                const place = session.data.metadata.interviewPlace;
-                
                 return (
                   <tr 
                     key={session.id} 
@@ -111,9 +104,9 @@ export const InterviewList: React.FC<InterviewListProps> = ({ sessions, onSelect
                       </span>
                     </td>
                     <td className="px-6 py-5">
-                      {interviewId && (
+                      {session.data.metadata.interviewId && (
                         <code className="text-[11px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
-                          {interviewId}
+                          {session.data.metadata.interviewId}
                         </code>
                       )}
                     </td>
@@ -124,7 +117,7 @@ export const InterviewList: React.FC<InterviewListProps> = ({ sessions, onSelect
                     </td>
                     <td className="px-6 py-5">
                       <p className="text-xs font-bold text-slate-500 truncate max-w-[150px]">
-                        {place || ''}
+                        {session.data.metadata.interviewPlace || ''}
                       </p>
                     </td>
                     <td className="px-6 py-5">
@@ -142,16 +135,14 @@ export const InterviewList: React.FC<InterviewListProps> = ({ sessions, onSelect
                         <button 
                           onClick={(e) => { e.stopPropagation(); onSelect(session); }}
                           className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                          title="Editar"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                         </button>
                         <button 
                           onClick={(e) => { e.stopPropagation(); onDelete(session.id); }}
                           className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
-                          title="Excluir"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1v3M4 7h16" /></svg>
                         </button>
                       </div>
                     </td>
@@ -161,15 +152,6 @@ export const InterviewList: React.FC<InterviewListProps> = ({ sessions, onSelect
             )}
           </tbody>
         </table>
-      </div>
-
-      {/* Footer Informacional */}
-      <div className="flex justify-between items-center text-[10px] font-black text-slate-300 uppercase tracking-widest px-2">
-        <span>© 2024 Oral-Gen System</span>
-        <div className="flex gap-4">
-          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Sincronizado</span>
-          <span>Versão 2.1.0-Pedigree</span>
-        </div>
       </div>
     </div>
   );

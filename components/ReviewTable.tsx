@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
-import { Individual, ProcessedData } from '../types';
-import { generateGEDCOM } from '../services/gedcomService';
+import { Individual, ProcessedData } from '../types.ts';
+import { generateGEDCOM } from '../services/gedcomService.ts';
 
 interface ReviewTableProps {
   data: ProcessedData;
@@ -15,7 +14,6 @@ export const ReviewTable: React.FC<ReviewTableProps> = ({ data, onUpdate, onSave
   const [activeFileIndex, setActiveFileIndex] = useState(0);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Fallback de segurança para evitar tela branca se os dados estiverem corrompidos
   if (!data || !data.individuals || data.individuals.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] bg-white rounded-[3rem] shadow-xl border border-slate-100 p-12 text-center">
@@ -82,7 +80,6 @@ export const ReviewTable: React.FC<ReviewTableProps> = ({ data, onUpdate, onSave
   return (
     <div className="flex h-[calc(100vh-160px)] gap-6 animate-in fade-in duration-500">
       
-      {/* LADO ESQUERDO: Visualizador de Documento Original */}
       <aside className="w-[45%] bg-white border border-slate-200 rounded-[2.5rem] shadow-xl flex flex-col overflow-hidden">
         <header className="px-8 py-4 border-b flex justify-between items-center bg-slate-50/50">
           <div className="flex items-center gap-3">
@@ -129,10 +126,8 @@ export const ReviewTable: React.FC<ReviewTableProps> = ({ data, onUpdate, onSave
         </div>
       </aside>
 
-      {/* LADO DIREITO: Painel de Revisão de Dados */}
       <main className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar flex flex-col">
         
-        {/* Barra de Ações Fixa no Topo do Painel */}
         <section className="bg-white/90 backdrop-blur-md border border-slate-200 rounded-3xl p-5 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-30 shadow-sm shrink-0">
           <div>
             <h2 className="text-sm font-black text-slate-900 tracking-tight uppercase leading-none">
@@ -174,7 +169,6 @@ export const ReviewTable: React.FC<ReviewTableProps> = ({ data, onUpdate, onSave
           </div>
         </section>
 
-        {/* Listagem por Páginas */}
         <div className="space-y-8 pb-10">
           {uniquePages.map((pageNum) => (
             <section key={pageNum} className="bg-white border border-slate-200 rounded-[2rem] shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-2">
@@ -259,23 +253,6 @@ export const ReviewTable: React.FC<ReviewTableProps> = ({ data, onUpdate, onSave
           ))}
         </div>
       </main>
-
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 5px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f8fafc;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #e2e8f0;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #cbd5e1;
-        }
-      `}</style>
     </div>
   );
 };

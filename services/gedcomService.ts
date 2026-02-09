@@ -1,5 +1,4 @@
-
-import { ProcessedData, Individual } from "../types";
+import { ProcessedData, Individual } from "../types.ts";
 
 const formatGedcomName = (fullName: string): string => {
   const nameTrimmed = fullName.trim();
@@ -44,12 +43,10 @@ export const generateGEDCOM = (data: ProcessedData): string => {
     return families.get(key)!;
   };
 
-  // PASSO 1: Mapear Uniões e Relações
   data.individuals.forEach(ind => {
     const rel = (ind.relation || '').toUpperCase().trim();
     if (!rel) return;
 
-    // Cônjuges (C<n>)
     if (rel.startsWith('C')) {
       const partnerRin = parseInt(rel.substring(1));
       if (!isNaN(partnerRin)) {
@@ -65,9 +62,8 @@ export const generateGEDCOM = (data: ProcessedData): string => {
       }
     }
 
-    // Filhos de Casal (F<n>,<m> ou F<n>,F<m>)
     if (rel.startsWith('F')) {
-      const cleanRel = rel.replace(/F/g, ''); // Remove todos os 'F' para pegar apenas números
+      const cleanRel = rel.replace(/F/g, '');
       const parents = cleanRel.split(',').map(p => parseInt(p.trim())).filter(p => !isNaN(p));
       parents.forEach(p => {
         if (!parentOf.has(ind.rin)) parentOf.set(ind.rin, new Set());
@@ -75,7 +71,6 @@ export const generateGEDCOM = (data: ProcessedData): string => {
       });
     }
 
-    // Progenitor de (P<k>)
     if (rel.startsWith('P')) {
       const childRin = parseInt(rel.substring(1));
       if (!isNaN(childRin)) {
@@ -85,7 +80,6 @@ export const generateGEDCOM = (data: ProcessedData): string => {
     }
   });
 
-  // PASSO 2: Resolver Filiações
   parentOf.forEach((parents, childRin) => {
     const parentList = Array.from(parents);
     let famKey = "";
@@ -116,7 +110,6 @@ export const generateGEDCOM = (data: ProcessedData): string => {
     }
   });
 
-  // PASSO 3: Exportar
   data.individuals.forEach(ind => {
     ged.push(`0 @I${ind.rin}@ INDI`);
     ged.push(`1 NAME ${formatGedcomName(ind.fullName)}`);

@@ -1,6 +1,5 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
-import { ProcessedData, FileData, Individual } from "../types";
+import { ProcessedData, FileData, Individual } from "../types.ts";
 
 const MAX_RETRIES = 3;
 const BASE_RETRY_DELAY = 10000;

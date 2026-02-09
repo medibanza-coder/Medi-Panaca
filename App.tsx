@@ -1,12 +1,11 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { AppState, ProcessedData, FileData, Individual, SavedSession, AuthUser } from './types';
-import { extractDataFromImages } from './services/geminiService';
-import { ProcessingOverlay } from './components/ProcessingOverlay';
-import { ReviewTable } from './components/ReviewTable';
-import { InterviewList } from './components/InterviewList';
-import { Auth } from './components/Auth';
-import { supabase, saveSessionToSupabase, fetchSessionsFromSupabase, deleteSessionFromSupabase } from './services/supabaseService';
+import { AppState, ProcessedData, FileData, Individual, SavedSession, AuthUser } from './types.ts';
+import { extractDataFromImages } from './services/geminiService.ts';
+import { ProcessingOverlay } from './components/ProcessingOverlay.tsx';
+import { ReviewTable } from './components/ReviewTable.tsx';
+import { InterviewList } from './components/InterviewList.tsx';
+import { Auth } from './components/Auth.tsx';
+import { supabase, saveSessionToSupabase, fetchSessionsFromSupabase, deleteSessionFromSupabase } from './services/supabaseService.ts';
 
 const ACTIVE_SESSION_KEY = 'oral_gen_active_v6';
 
@@ -19,17 +18,33 @@ const App: React.FC = () => {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState({ current: 0, total: 0 });
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [editingName, setEditingName] = useState('');
   
   const isInitializing = useRef(true);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) setUser({ id: session.user.id, email: session.user.email });
+      if (session?.user) {
+        const authUser: AuthUser = { 
+          id: session.user.id, 
+          email: session.user.email,
+          displayName: session.user.user_metadata?.full_name || ''
+        };
+        setUser(authUser);
+        setEditingName(authUser.displayName || '');
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        setUser({ id: session.user.id, email: session.user.email });
+        const authUser: AuthUser = { 
+          id: session.user.id, 
+          email: session.user.email,
+          displayName: session.user.user_metadata?.full_name || ''
+        };
+        setUser(authUser);
+        setEditingName(authUser.displayName || '');
       } else {
         setUser(null);
         setAppState('IDLE');
@@ -88,18 +103,37 @@ const App: React.FC = () => {
     }
   }, [data, appState, currentSessionId, user]);
 
+  const handleUpdateProfile = async () => {
+    if (!editingName.trim()) return;
+    setIsSyncing(true);
+    try {
+      const { data: { user: updatedUser }, error } = await supabase.auth.updateUser({
+        data: { full_name: editingName.trim() }
+      });
+      if (error) throw error;
+      if (updatedUser) {
+        setUser(prev => prev ? { ...prev, displayName: editingName.trim() } : null);
+        setIsProfileOpen(false);
+      }
+    } catch (err: any) {
+      setError("Erro ao atualizar perfil: " + err.message);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const handleLogout = async () => {
     if (window.confirm("Deseja encerrar sua sessão com segurança?")) {
       try {
         if (user) localStorage.removeItem(`${ACTIVE_SESSION_KEY}_${user.id}`);
         await supabase.auth.signOut();
-        // Reset local UI state
         setUser(null);
         setAppState('IDLE');
         setData(null);
+        setIsProfileOpen(false);
       } catch (err) {
         console.error("Erro logout:", err);
-        setUser(null); // Fallback for network issues
+        setUser(null);
       }
     }
   };
@@ -182,7 +216,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 overflow-hidden">
-      {/* Header Compacto e Moderno */}
+      
       <header className="bg-white border-b border-slate-200 px-8 h-16 sticky top-0 z-40 flex justify-between items-center shadow-sm shrink-0">
         <div className="flex items-center gap-6">
           {appState !== 'IDLE' && (
@@ -193,7 +227,7 @@ const App: React.FC = () => {
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setAppState('IDLE')}>
             <div className="bg-blue-600 p-2 rounded-lg shadow-md"><svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg></div>
             <div className="hidden md:block">
-              <h1 className="text-sm font-black leading-tight uppercase tracking-tighter">Oral-Gen <span className="text-blue-600">V2</span></h1>
+              <h1 className="text-sm font-black leading-tight uppercase tracking-tighter">Oral-Gen <span className="text-blue-600">Assistant</span></h1>
             </div>
           </div>
         </div>
@@ -202,15 +236,30 @@ const App: React.FC = () => {
           {isSyncing && (
             <div className="flex items-center gap-2 text-blue-600 animate-pulse">
               <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-              <span className="text-[9px] font-black uppercase tracking-widest">Sincronizando Banco</span>
+              <span className="text-[9px] font-black uppercase tracking-widest">Sincronizando</span>
             </div>
           )}
+          
           <div className="flex items-center gap-3">
-            <span className="text-[10px] font-bold text-slate-400 hidden sm:block">{user.email}</span>
+            <button 
+              onClick={() => setIsProfileOpen(true)}
+              className="flex items-center gap-3 group px-3 py-1.5 hover:bg-slate-50 rounded-xl transition-all"
+            >
+              <div className="text-right hidden sm:block">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Operador Ativo</p>
+                <p className="text-[11px] font-black text-slate-700 leading-none group-hover:text-blue-600 transition-colors">
+                  {user.displayName || user.email?.split('@')[0]}
+                </p>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center text-slate-400 font-black text-[10px] group-hover:border-blue-200 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all">
+                {(user.displayName?.[0] || user.email?.[0] || 'U').toUpperCase()}
+              </div>
+            </button>
+            
             <button 
               onClick={handleLogout} 
-              title="Encerrar Sessão"
-              className="p-2 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-100 transition-all shadow-sm active:scale-95 group"
+              title="Sair do Sistema"
+              className="p-2 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-100 transition-all shadow-sm active:scale-95"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             </button>
@@ -218,7 +267,54 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      {/* Área de Conteúdo Principal */}
+      {isProfileOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsProfileOpen(false)}></div>
+          <div className="bg-white w-full max-w-md rounded-[3rem] shadow-2xl relative z-10 overflow-hidden border border-slate-100">
+            <div className="bg-slate-50 px-10 py-8 border-b border-slate-100">
+              <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase">Configurações de Operador</h3>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Gerencie sua identidade no fluxo MZ11</p>
+            </div>
+            
+            <div className="p-10 space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nome Completo</label>
+                <input 
+                  type="text"
+                  className="w-full bg-slate-50 border-2 border-slate-100 focus:border-blue-500 focus:bg-white outline-none rounded-2xl px-6 py-4 font-bold text-slate-800 transition-all"
+                  value={editingName}
+                  onChange={(e) => setEditingName(e.target.value)}
+                  placeholder="Seu nome"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">E-mail (Inalterável)</label>
+                <div className="w-full bg-slate-50/50 border-2 border-slate-50 rounded-2xl px-6 py-4 font-bold text-slate-400 cursor-not-allowed">
+                  {user.email}
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button 
+                  onClick={() => setIsProfileOpen(false)}
+                  className="flex-1 bg-slate-100 text-slate-500 font-black py-4 rounded-2xl uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={handleUpdateProfile}
+                  disabled={isSyncing || editingName.trim() === user.displayName}
+                  className="flex-1 bg-blue-600 text-white font-black py-4 rounded-2xl uppercase tracking-widest text-[10px] shadow-lg shadow-blue-100 hover:bg-blue-700 disabled:opacity-50 transition-all"
+                >
+                  {isSyncing ? 'Salvando...' : 'Salvar Nome'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="flex-1 w-full px-8 py-8 overflow-hidden flex flex-col relative">
         {appState === 'IDLE' && (
           <div className="flex-1 flex flex-col items-center justify-center text-center animate-in fade-in zoom-in-95 duration-500">
@@ -278,7 +374,6 @@ const App: React.FC = () => {
           />
         )}
 
-        {/* Notificações de Erro */}
         {error && (
           <div className="fixed bottom-12 left-1/2 -translate-x-1/2 bg-rose-600 text-white px-10 py-5 rounded-[2rem] shadow-2xl font-black uppercase tracking-widest text-[10px] z-[200] animate-bounce text-center max-w-lg border-4 border-rose-500/50">
             {error}
